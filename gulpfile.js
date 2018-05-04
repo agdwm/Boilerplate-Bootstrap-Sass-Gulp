@@ -1,5 +1,22 @@
-const gulp = require('gulp');
-const sass = require('gulp-sass');
+const gulp = require ("gulp"),
+	sass = require ("gulp-sass"),
+	notify = require ("gulp-notify"),
+	browserSync = require("browser-sync"),
+	gulpImport = require("gulp-html-import"),
+	tap = require("gulp-tap"), 
+	browserify = require("browserify"),
+	buffer = require("gulp-buffer"), 
+	sourcemaps = require("gulp-sourcemaps"),
+	htmlmin = require("gulp-htmlmin"),
+	uglify = require("gulp-uglify"),
+	postcss = require("gulp-postcss"),
+	autoprefixer = require("autoprefixer"),
+	cssnano = require("cssnano"),
+	imagemin = require("gulp-imagemin"),
+	responsive = require("gulp-responsive");
+
+// BrowserSync Instance
+browserSync.create();
 
 // Source and Distribution Folders
 const source = 'src/';
@@ -37,13 +54,75 @@ gulp.task('fonts', function () {
 });
 
 // compile scss
-gulp.task('sass', ['fonts'], function () {
-    return gulp.src(scss.in)
-        .pipe(sass(scss.sassOpts))
-        .pipe(gulp.dest(scss.out));
+gulp.task('sass', ['fonts'], () => {
+	return gulp.src(scss.in)
+		.pipe(sourcemaps.init())
+        .pipe(sass(scss.sassOpts).on("error", function(error){
+            return notify().write(error);
+		}))
+		.pipe(postcss([
+            autoprefixer(),
+            cssnano()
+		]))
+		.pipe(sourcemaps.write("./"))
+		.pipe(gulp.dest(scss.out))
+		.pipe(browserSync.stream())
+		.pipe(notify("SASS Compilado 🤘🏻")) 
 });
 
-// default task
-gulp.task('default', ['sass'], function () {
-	gulp.watch(scss.watch, ['sass']);
+// copiar e importar html
+gulp.task("html", () => {
+	gulp.src(source + "*.html")
+		.pipe(gulpImport(source + "components/"))
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(gulp.dest(dest))
+		.pipe(browserSync.stream())
+		.pipe(notify("HTML importado 🤘🏻"))
+})
+
+gulp.task("js", () => {
+	gulp.src(source + "js/main.js")
+	.pipe(tap((file) => {
+		file.contents = browserify(file.path, {debug: true})
+			.transform("babelify", {presets: ["env"]})
+			.bundle()
+			.on("error", (error) => {
+				return notify().write(error);
+			});
+	}))
+	.pipe(buffer())
+	.pipe(sourcemaps.init({loadMaps: true}))
+	.pipe(uglify())
+	.pipe(sourcemaps.write('./'))
+	.pipe(gulp.dest(dest))
+	.pipe(browserSync.stream())
+	.pipe(notify("JS Compilado"));
+
+})
+
+gulp.task("img", () => {
+	gulp.src(source + "images/*")
+		/*.pipe(imagemin())
+		.pipe(responsive({
+            '*.png': [
+                {width: 150, rename:{suffix: "-150px"}}, //mobile
+                {width: 250, rename:{suffix: "-250px"}}, //tablet
+                {width: 300, rename:{suffix: "-300px"}}  //desktop
+            ]
+		})) */
+        .pipe(gulp.dest(dest + "images/"))
+})
+
+// DEFAULT task
+gulp.task('default', ["img", "html", "sass", "js"], () => {
+	browserSync.init({
+		//server: "./"+ dest,
+        proxy: "http://127.0.0.1:3100/",
+        // Don't show any notifications in the browser.
+        notify: false,
+        browser: ["google chrome"/*, "firefox"*/]
+    });
+	gulp.watch([source + "scss/*.scss", source + "scss/**/*.scss"], ["sass"]);
+	gulp.watch([source + "*.html", source + "**/*.html"], ["html"]);
+	gulp.watch([source + "*.js", source + "js/**/*.js"], ["js"]);
 });
