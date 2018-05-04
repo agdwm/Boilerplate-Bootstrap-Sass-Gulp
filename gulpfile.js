@@ -1,19 +1,19 @@
-const gulp = require ("gulp"),
-	sass = require ("gulp-sass"),
-	notify = require ("gulp-notify"),
-	browserSync = require("browser-sync"),
-	gulpImport = require("gulp-html-import"),
-	tap = require("gulp-tap"), 
-	browserify = require("browserify"),
-	buffer = require("gulp-buffer"), 
-	sourcemaps = require("gulp-sourcemaps"),
-	htmlmin = require("gulp-htmlmin"),
-	uglify = require("gulp-uglify"),
-	postcss = require("gulp-postcss"),
-	autoprefixer = require("autoprefixer"),
-	cssnano = require("cssnano"),
-	imagemin = require("gulp-imagemin"),
-	responsive = require("gulp-responsive");
+const gulp = require ('gulp'),
+	sass = require ('gulp-sass'),
+	notify = require ('gulp-notify'),
+	browserSync = require('browser-sync'),
+	gulpImport = require('gulp-html-import'),
+	tap = require('gulp-tap'), 
+	browserify = require('browserify'),
+	buffer = require('gulp-buffer'), 
+	sourcemaps = require('gulp-sourcemaps'),
+	htmlmin = require('gulp-htmlmin'),
+	uglify = require('gulp-uglify'),
+	postcss = require('gulp-postcss'),
+	autoprefixer = require('autoprefixer'),
+	cssnano = require('cssnano'),
+	imagemin = require('gulp-imagemin'),
+	responsive = require('gulp-responsive');
 
 // BrowserSync Instance
 browserSync.create();
@@ -21,6 +21,7 @@ browserSync.create();
 // Source and Distribution Folders
 const source = 'src/';
 const dest = 'dist/';
+const origin = './';
 
 // Bootstrap Sources
 const bootstrapSass = {
@@ -29,20 +30,20 @@ const bootstrapSass = {
 
 // fonts
 const fonts = {
-	in: [source + 'fonts/*.*', bootstrapSass.in + 'assets/fonts/**/*'],
-	out: dest + 'fonts/'
+	in: [`${source}fonts/*.*`, `${bootstrapSass.in}assets/fonts/**/*`],
+	out: `${dest}fonts/`
 };
 
 // Our scss source folder: .scss files
 const scss = {
-    in: source + 'scss/main.scss',
-    out: dest + 'css/',
-    watch: source + 'scss/**/*',
+	in: `${source}scss/main.scss`,
+	out: `${dest}css/`,
+	watch: `${source}scss/**/*`,
     sassOpts: {
         outputStyle: 'nested',
         precison: 3,
         errLogToConsole: true,
-        includePaths: [bootstrapSass.in + 'assets/stylesheets']
+		includePaths: [`${bootstrapSass.in}assets/stylesheets`]
     }
 };
 
@@ -57,72 +58,73 @@ gulp.task('fonts', function () {
 gulp.task('sass', ['fonts'], () => {
 	return gulp.src(scss.in)
 		.pipe(sourcemaps.init())
-        .pipe(sass(scss.sassOpts).on("error", function(error){
+        .pipe(sass(scss.sassOpts).on('error', function(error){
             return notify().write(error);
 		}))
 		.pipe(postcss([
             autoprefixer(),
             cssnano()
 		]))
-		.pipe(sourcemaps.write("./"))
+		.pipe(sourcemaps.write(origin))
 		.pipe(gulp.dest(scss.out))
 		.pipe(browserSync.stream())
-		.pipe(notify("SASS Compilado 🤘🏻")) 
+		.pipe(notify('SASS Compilado 🤘🏻')) 
 });
 
 // copiar e importar html
-gulp.task("html", () => {
-	gulp.src(source + "*.html")
-		.pipe(gulpImport(source + "components/"))
+gulp.task('html', () => {
+	gulp.src(`${source}*.html`)
+		.pipe(gulpImport(`${source}components/`))
 		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(gulp.dest(dest))
 		.pipe(browserSync.stream())
-		.pipe(notify("HTML importado 🤘🏻"))
+		.pipe(notify('HTML importado 🤘🏻'))
 })
 
-gulp.task("js", () => {
-	gulp.src(source + "js/main.js")
+gulp.task('js', () => {
+	gulp.src(`${source}js/main.js`)
 	.pipe(tap((file) => {
 		file.contents = browserify(file.path, {debug: true})
-			.transform("babelify", {presets: ["env"]})
+			.transform('babelify', {presets: ['env']})
 			.bundle()
-			.on("error", (error) => {
+			.on('error', (error) => {
 				return notify().write(error);
 			});
 	}))
 	.pipe(buffer())
 	.pipe(sourcemaps.init({loadMaps: true}))
 	.pipe(uglify())
-	.pipe(sourcemaps.write('./'))
+	.pipe(sourcemaps.write(origin))
 	.pipe(gulp.dest(dest))
 	.pipe(browserSync.stream())
-	.pipe(notify("JS Compilado"));
+	.pipe(notify('JS Compilado'));
 
 })
 
-gulp.task("img", () => {
-	gulp.src(source + "images/*")
+gulp.task('img', () => {
+	gulp.src(`{$source}images/*`)
 		/*.pipe(imagemin())
 		.pipe(responsive({
             '*.png': [
-                {width: 150, rename:{suffix: "-150px"}}, //mobile
-                {width: 250, rename:{suffix: "-250px"}}, //tablet
-                {width: 300, rename:{suffix: "-300px"}}  //desktop
+                {width: 150, rename:{suffix: '-150px'}}, //mobile
+                {width: 250, rename:{suffix: '-250px'}}, //tablet
+                {width: 300, rename:{suffix: '-300px'}}  //desktop
             ]
 		})) */
-        .pipe(gulp.dest(dest + "images/"))
+        .pipe(gulp.dest(`${dest}images/`))
 })
 
 // DEFAULT task
-gulp.task('default', ["img", "html", "sass", "js"], () => {
+gulp.task('default', ['img', 'html', 'sass', 'js'], () => {
 	browserSync.init({
-		//server: "./"+ dest,
-        proxy: "http://127.0.0.1:3100/",
+		server: `${origin}${dest}`,
+        proxy: 'http://127.0.0.1:3100/',
         // Don't show any notifications in the browser.
         notify: false,
-        browser: ["google chrome"/*, "firefox"*/]
-    });
-	gulp.watch([source + "scss/*.scss", source + "scss/**/*.scss"], ["sass"]);
-	gulp.watch([source + "*.html", source + "**/*.html"], ["html"]);
-	gulp.watch([source + "*.js", source + "js/**/*.js"], ["js"]);
+        browser: ['google chrome'/*, 'firefox'*/]
+	});
+	gulp.watch([`${source}scss/*.scss`, `${source}scss/**/*.scss`], ['sass']);
+	gulp.watch([`${source}scss/*.scss`, `${source}scss/**/*.scss`], ['sass']);
+	gulp.watch([`${source}*.html`, `${source}**/*.html`], ['html']);
+	gulp.watch([`${source}*.js`, `${source}js/**/*.js`], ['js']);
 });
