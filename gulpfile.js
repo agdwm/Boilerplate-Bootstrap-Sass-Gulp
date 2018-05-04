@@ -110,14 +110,14 @@ gulp.task('js', () => {
 
 gulp.task('img', () => {
 	gulp.src(`${source}images/*`)
-		/* .pipe(imagemin())
-		.pipe(responsive({
+		/* .pipe(responsive({
             '*.png': [
                 {width: 150, rename:{suffix: '-150px'}}, //mobile
                 {width: 250, rename:{suffix: '-250px'}}, //tablet
                 {width: 300, rename:{suffix: '-300px'}}  //desktop
             ]
-		})) */
+		}))
+		.pipe(imagemin()) */
 		.pipe(gulp.dest(`${dest}images/`));
 });
 
