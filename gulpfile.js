@@ -24,19 +24,16 @@ const dest = 'dist/';
 const origin = './';
 
 // Bootstrap Sources
-const bootstrapSass = {
-	in: './node_modules/bootstrap-sass/',
+const bootstrapSass = { in: './node_modules/bootstrap-sass/',
 };
 
 // fonts
-const fonts = {
-	in: [`${source}fonts/*.*`, `${bootstrapSass.in}assets/fonts/**/*`],
+const fonts = { in: [`${source}fonts/*.*`, `${bootstrapSass.in}assets/fonts/**/*`],
 	out: `${dest}fonts/`,
 };
 
 // Our scss source folder: .scss files
-const scss = {
-	in: `${source}scss/main.scss`,
+const scss = { in: `${source}scss/main.scss`,
 	out: `${dest}css/`,
 	watch: `${source}scss/**/*`,
 	sassOpts: {
@@ -73,8 +70,8 @@ gulp.task('sass', ['fonts'], () => {
 
 // copiar e importar html
 gulp.task('html', () => {
-	gulp.src(`${source}*.html`)
-		.pipe(gulpImport(`${source}components/`))
+	gulp.src(`${source}components/*.html`)
+		.pipe(gulpImport([`${source}components/`]))
 		.pipe(htmlmin({
 			collapseWhitespace: true,
 		}))
@@ -87,15 +84,12 @@ gulp.task('js', () => {
 	gulp.src(`${source}js/main.js`)
 		.pipe(tap((file) => {
 			file.contents = browserify(file.path, {
-					debug: true
-				})
-				.transform('babelify', {
-					presets: ['env'],
-				})
-				.bundle()
-				.on('error', (error) => {
-					return notify().write(error);
-				});
+				debug: true,
+			}).transform('babelify', {
+				presets: ['env'],
+			}).bundle().on('error', (error) => {
+				return notify().write(error);
+			});
 		}))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({
@@ -125,12 +119,14 @@ gulp.task('img', () => {
 gulp.task('default', ['img', 'html', 'sass', 'js'], () => {
 	browserSync.init({
 		server: `${origin}${dest}`,
-		proxy: 'http://127.0.0.1:3100/',
+		startPath: '/',
+		// changing the default port '3000'
+		port: 3100,
+		// proxy: 'http://127.0.0.1:3100/',
 		// Don't show any notifications in the browser.
 		notify: false,
-		browser: ['google chrome' /* , 'firefox' */ ]
+		browser: ['google chrome' /* , 'firefox' */ ],
 	});
-	gulp.watch([`${source}scss/*.scss`, `${source}scss/**/*.scss`], ['sass']);
 	gulp.watch([`${source}scss/*.scss`, `${source}scss/**/*.scss`], ['sass']);
 	gulp.watch([`${source}*.html`, `${source}**/*.html`], ['html']);
 	gulp.watch([`${source}*.js`, `${source}js/**/*.js`], ['js']);
