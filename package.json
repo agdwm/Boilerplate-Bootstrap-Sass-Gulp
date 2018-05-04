@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/*.js",
+    "lint-fix": "eslint src/*.js --fix"
   },
   "keywords": [
     "sass",
@@ -24,7 +26,10 @@
     "browser-sync": "^2.24.4",
     "browserify": "^16.2.0",
     "cssnano": "^4.0.0-rc.2",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-config-wikimedia": "^0.5.0",
+    "eslint-plugin-import": "^2.11.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.1",
     "gulp-buffer": "0.0.2",
